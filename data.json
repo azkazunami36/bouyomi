@@ -1,0 +1,15 @@
+{
+    "onlinestatus": "online",
+    "status": "チャット監視中。",
+    "Speed": "100",
+    "Tone": "130",
+    "Volume": "100",
+    "Voice": "2",
+    "crem": true,
+    "delm": true,
+    "updm": true,
+    "ream": true,
+    "address": "192.168.100.148",
+    "port": "50001",
+    "language": 0
+}
