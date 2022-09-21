@@ -40,7 +40,28 @@ var config = require("./data.json"),
                 "`"
             ],
             statusd: [
-
+                "setstatusの状態>now:",
+                "request:",
+                "out:"
+            ],
+            sendmessage: [
+                "棒読みちゃんに送信:",
+                "メッセージにリアクション。",
+                "メッセージのリアクション解除。"
+            ],
+            bouyomierror: [
+                "ところが、棒読みちゃんにデータを送信出来ませんでした。なので、botが終了しちゃいます...",
+                "もし棒読みちゃんが起動しているのに、送信ができない場合は棒読みちゃんの設定ボタンから、アプリケーション連携>Socket連携の「ローカルTCPサーバー機能を使う」の項目をTrueにし、",
+                "ポート番号を'50001'に変更してください。"
+            ],
+            startmessage: "読み上げを開始しました。",
+            replacec: [
+                "絵文字",
+                "メンション"
+            ],
+            customstatus: [
+                "カスタムステータスを「",
+                "」に変更しました。"
             ]
         }
     ],
@@ -48,7 +69,7 @@ var config = require("./data.json"),
 require("dotenv").config();
 const net = require('net'),
     bouyomiclient = new net.Socket(),
-    { Client, GatewayIntentBits, Partials, EmbedBuilder, BaseChannel, ApplicationCommandOptionType } = require('discord.js'),
+    { Client, GatewayIntentBits, Partials, EmbedBuilder, BaseChannel, ApplicationCommandOptionType, SlashCommandBuilder } = require('discord.js'),
     client = new Client({
         partials: [Partials.Channel],
         intents: [
@@ -107,20 +128,26 @@ client.on('interactionCreate', interaction => {
         interaction.reply({ content: lavol.statusset[0], ephemeral: true });
         bouyomisend(lavol.statusset[0]);
         console.log(lavol.statusset[1] + config.onlinestatus + lavol.statusset[2]);
+    } else if (f == "setstatus") {
+        config.status = interaction.options.getString("text");
+        onstats();
+        interaction.reply({ content: lavol.customstatus[0] + config.status + lavol.customstatus[1], ephemeral: true});
+        bouyomisend(lavol.customstatus[0] + config.status + lavol.customstatus[1]);
+        console.log(lavol.customstatus[0] + config.status + lavol.customstatus[1]);
     } else if (f == "allset") {
         if (g == "true") {
-            config.crem = true,
-                config.delm = true,
-                config.updm = true,
-                config.ream = true;
+            config.crem = true;
+            config.delm = true;
+            config.updm = true;
+            config.ream = true;
             interaction.reply({ content: lavol.allsets[0], ephemeral: true });
             bouyomisend(lavol.allsets[0]);
             console.log(lavol.allsets[1]);
         } else if (g == "false") {
-            config.crem = false,
-                config.delm = false,
-                config.updm = false,
-                config.ream = false;
+            config.crem = false;
+            config.delm = false;
+            config.updm = false;
+            config.ream = false;
             interaction.reply({ content: lavol.allsets[2], ephemeral: true });
             bouyomisend(lavol.allsets[2]);
             console.log(lavol.allsets[3]);
@@ -156,31 +183,31 @@ function setstatus(stats, request, interaction) {
             console.log(lavol.setsta[3]);
         };
     };
-    console.log("setstatusの状態-stats:" + stats + " request:" + request + " data:" + data);
+    console.log(lavol.statusd[0] + stats + " " + lavol.statusd[1] + request + " " + lavol.statusd[2] + data);
     return data;
 };
 function bouyomi(data1, data2, id) {
     if (id == "1" && config.crem) {
         if (data1.author.bot) return;
         bouyomisend(replace(data1.content));
-        console.log("棒読みちゃんに送信:" + replace(data1.content));
+        console.log(lavol.sendmessage[0] + replace(data1.content));
     } else if (id == "2" && config.updm) {
         if (data1.author.bot) return;
         if (data1.content == data2.content) return;
         bouyomisend(replace(data2.content));
-        console.log("棒読みちゃんに送信:" + replace(data2.content));
+        console.log(lavol.sendmessage[0] + replace(data2.content));
     } else if (id == "3" && config.delm) {
         if (data1.author.bot) return;
         bouyomisend(replace(data1.content));
-        console.log("棒読みちゃんに送信:" + replace(data1.content));
+        console.log(lavol.sendmessage[0] + replace(data1.content));
     } else if (id == "4" && config.ream) {
         if (data1.message.author.bot) return;
-        bouyomisend("メッセージにリアクション。" + data1.emoji.name);
-        console.log("棒読みちゃんに送信:" + "メッセージにリアクション。" + data1.emoji.name);
+        bouyomisend(lavol.sendmessage[1] + data1.emoji.name);
+        console.log(lavol.sendmessage[0] + lavol.sendmessage[1] + data1.emoji.name);
     } else if (id == "5" && config.ream) {
         if (data1.message.author.bot) return;
-        bouyomisend("メッセージのリアクション解除。" + data1.emoji.name);
-        console.log("棒読みちゃんに送信:" + "メッセージのリアクション解除。" + data1.emoji.name);
+        bouyomisend(lavol.sendmessage[2] + data1.emoji.name);
+        console.log(lavol.sendmessage[0] + lavol.sendmessage[2] + data1.emoji.name);
     };
 };
 //棒読みちゃんに送信するプログラム全部ネットからコピペした
@@ -216,7 +243,7 @@ bouyomiclient.on('close', () => {
     bouyomiclient.end();
 });
 bouyomiclient.on('error', () => {
-    console.log("ところが、棒読みちゃんにデータを送信出来ませんでした。なので、botが終了しちゃいます...\nもし棒読みちゃんが起動しているのに、送信ができない場合は棒読みちゃんの設定ボタンから、アプリケーション連携>Socket連携の「ローカルTCPサーバー機能を使う」の項目をTrueにし、\nポート番号を'50001'に変更してください。");
+    console.log(autobr(lavol.bouyomierror));
     client.destroy();
 });
 var replace = d => {
@@ -226,149 +253,120 @@ var replace = d => {
     });
     c = c.replace(/\r?\n/g, " ");
     var b = new RegExp("<:[a-zA-Z0-9]:[0-9]{17,}>", 'g');
-    c = c.replace(b, " 絵文字 ");
+    c = c.replace(b, " " + lavol.replacec[0] + " ");
     var b = new RegExp("<@[0-9]>", 'g');
-    c = c.replace(b, " メンション "); return c;
+    c = c.replace(b, " " + lavol.replacec[1] + " "); return c;
+};
+var autobr = textdata => {
+    var outdata = "";
+    for (var i = 0; i != textdata.length; i++) {
+        if (outdata != "") {
+            outdata = outdata + br;
+        };
+        outdata = outdata + textdata[i];
+    };
+    return outdata;
 };
 var ready = () => {
     onstats();
-    console.log("Bot動作開始しましたよ～");
-    bouyomisend("ぼっと/ど+おさ/かいししました'/よ'ぉー。");
+    console.log(lavol.startmessage);
+    bouyomisend(lavol.startmessage);
 };
 var onstats = () => {
-    var scommand = [
-        {
-            name: "createmsg",
-            description: "送信されたメッセージに反応するかどうかを切り替えます。",
-            options: [{
-                type: ApplicationCommandOptionType.String,
-                name: "option",
-                description: "TrueかFalseを選択し、オン/オフを切り替えます。",
-                required: true,
-                choices: [
-                    {
-                        name: "True(オン)",
-                        value: "true"
-                    },
-                    {
-                        name: "False(オフ)",
-                        value: "false"
-                    }
-                ]
-            }]
-        },
-        {
-            name: "deletemsg",
-            description: "削除されたメッセージを読み上げるかどうかを切り替えます。",
-            options: [{
-                type: ApplicationCommandOptionType.String,
-                name: "option",
-                description: "TrueかFalseを選択し、オン/オフを切り替えます。",
-                required: true,
-                choices: [
-                    {
-                        name: "True(オン)",
-                        value: "true"
-                    },
-                    {
-                        name: "False(オフ)",
-                        value: "false"
-                    }
-                ]
-            }]
-        },
-        {
-            name: "updatemsg",
-            description: "編集されたメッセージに反応するかどうかを切り替えます。",
-            options: [{
-                type: ApplicationCommandOptionType.String,
-                name: "option",
-                description: "TrueかFalseを選択し、オン/オフを切り替えます。",
-                required: true,
-                choices: [
-                    {
-                        name: "True(オン)",
-                        value: "true"
-                    },
-                    {
-                        name: "False(オフ)",
-                        value: "false"
-                    }
-                ]
-            }]
-        },
-        {
-            name: "msgreaction",
-            description: "メッセージにリアクションされた場合に反応するかどうかを切り替えます。",
-            options: [{
-                type: ApplicationCommandOptionType.String,
-                name: "option",
-                description: "TrueかFalseを選択し、オン/オフを切り替えます。",
-                required: true,
-                choices: [
-                    {
-                        name: "True(オン)",
-                        value: "true"
-                    },
-                    {
-                        name: "False(オフ)",
-                        value: "false"
-                    }
-                ]
-            }]
-        },
-        {
-            name: "allset",
-            description: "全ての機能をオンにしたりオフにしたりします。",
-            options: [{
-                type: ApplicationCommandOptionType.String,
-                name: "option",
-                description: "TrueかFalseを選択し、オン/オフを切り替えます。",
-                required: true,
-                choices: [
-                    {
-                        name: "True(オン)",
-                        value: "true"
-                    },
-                    {
-                        name: "False(オフ)",
-                        value: "false"
-                    }
-                ]
-            }]
-        },
-        {
-            name: "onlinestatus",
-            description: "このbotのオンラインステータスを変更します。",
-            options: [{
-                type: ApplicationCommandOptionType.String,
-                name: "option",
-                description: "一覧を選択し、ステータスを切り替えます。",
-                required: true,
-                choices: [
-                    {
-                        name: "オンライン",
-                        value: "online"
-                    },
-                    {
-                        name: "離席中",
-                        value: "idle"
-                    },
-                    {
-                        name: "取り込み中",
-                        value: "dnd"
-                    },
-                    {
-                        name: "オフライン",
-                        value: "invisible"
-                    }
-                ]
-            }]
-        },
-        {
-            name: "status",
-            description: "今のbotの設定等を表示します。"
-        }
+    var cmds = [
+        new SlashCommandBuilder()
+            .setName("createmsg")
+            .setDescription("送信されたメッセージに反応するかどうかを切り替えます。")
+            .addStringOption(option => option
+                .setName("option")
+                .setDescription("TrueかFalseを選択し、オン/オフを切り替えます。")
+                .setRequired(true)
+                .setChoices(
+                    { name: "True(オン)", value: "true" },
+                    { name: "False(オフ)", value: "false" }
+                )
+            )
+        ,
+        new SlashCommandBuilder()
+            .setName("deletemsg")
+            .setDescription("削除されたメッセージを読み上げるかどうかを切り替えます。")
+            .addStringOption(option => option
+                .setName("option")
+                .setDescription("TrueかFalseを選択し、オン/オフを切り替えます。")
+                .setRequired(true)
+                .setChoices(
+                    { name: "True(オン)", value: "true" },
+                    { name: "False(オフ)", value: "false" }
+                )
+            )
+        ,
+        new SlashCommandBuilder()
+            .setName("updatemsg")
+            .setDescription("編集されたメッセージに反応するかどうかを切り替えます。")
+            .addStringOption(option => option
+                .setName("option")
+                .setDescription("TrueかFalseを選択し、オン/オフを切り替えます。")
+                .setRequired(true)
+                .setChoices(
+                    { name: "True(オン)", value: "true" },
+                    { name: "False(オフ)", value: "false" }
+                )
+            )
+        ,
+        new SlashCommandBuilder()
+            .setName("msgreaction")
+            .setDescription("メッセージにリアクションされた場合に反応するかどうかを切り替えます。")
+            .addStringOption(option => option
+                .setName("option")
+                .setDescription("TrueかFalseを選択し、オン/オフを切り替えます。")
+                .setRequired(true)
+                .setChoices(
+                    { name: "True(オン)", value: "true" },
+                    { name: "False(オフ)", value: "false" }
+                )
+            )
+        ,
+        new SlashCommandBuilder()
+            .setName("allset")
+            .setDescription("全ての機能をオンにしたりオフにしたりします。")
+            .addStringOption(option => option
+                .setName("option")
+                .setDescription("TrueかFalseを選択し、オン/オフを切り替えます。")
+                .setRequired(true)
+                .setChoices(
+                    { name: "True(オン)", value: "true" },
+                    { name: "False(オフ)", value: "false" }
+                )
+            )
+        ,
+        new SlashCommandBuilder()
+            .setName("onlinestatus")
+            .setDescription("このbotのオンラインステータスを変更します。")
+            .addStringOption(option => option
+                .setName("option")
+                .setDescription("一覧を選択し、ステータスを切り替えます。")
+                .setRequired(true)
+                .setChoices(
+                    { name: "オンライン", value: "true" },
+                    { name: "離席中", value: "online" },
+                    { name: "取り込み中", value: "dnd" },
+                    { name: "オフライン", value: "invisible" }
+                )
+            )
+        ,
+        new SlashCommandBuilder()
+            .setName("setstatus")
+            .setDescription("このbotのステータスをカスタマイズします。")
+            .addStringOption(option => option
+                .setName("text")
+                .setDescription("ステータスに設定する文を入力します。")
+                .setRequired(true)
+                .setAutocomplete(true)
+            )
+        ,
+        new SlashCommandBuilder()
+            .setName("status")
+            .setDescription("今のbotの設定等を表示します。")
     ];
     client.user.setPresence({
         activities: [{
@@ -376,6 +374,6 @@ var onstats = () => {
         }],
         status: config.onlinestatus
     });
-    client.application.commands.set(scommand);
+    client.application.commands.set(cmds);
 };
 client.login(process.env.TOKEN);
