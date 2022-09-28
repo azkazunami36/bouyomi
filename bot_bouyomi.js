@@ -261,7 +261,7 @@ var autobr = textdata => {
     var outdata = "";
     for (var i = 0; i != textdata.length; i++) {
         if (outdata != "") {
-            outdata = outdata + br;
+            outdata = outdata + "\n";
         };
         outdata = outdata + textdata[i];
     };
